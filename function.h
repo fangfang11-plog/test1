@@ -1,213 +1,142 @@
-#pragma once
+#ifndef FUNCTION_H_INCLUDED
+#define FUNCTION_H_INCLUDED
+#include<reg51.h>
 
-typedef enum {
-	ERROR=0,TRUE=1
+#define uchar unsigned char
+#define uint unsigned int
+#define DATA_PORT P0
+//-------------------------------------------
+// 结构体定义
+//------------------------------------------
 
-}Status;
 
-
-
-
-//标签结构体 
-typedef struct tag
+typedef struct       //敌人结构体
 {
-	char tag_node[20];			//一个标签
-}Tag;
+	uint x,y;       //坐标
+	uint direction; //敌人方向变量
+	uint exist;     //敌人存在与否的变量,1为存在，0不存在
+	uint live;   //子弹是否处于建立初状态的值，1为处于建立初状态，0为处于非建立初状态
+	uint attribute; //区分敌人与防御塔的标记,敌人为玩家（我的）子弹
 
+} Enemy;
 
-
-//文件单链表 
-typedef struct file
+typedef struct TA      //防御塔结构体
 {
-	char file_title[50];		//文件名
-	Tag file_tag[5];			//文件标签（最多5个） 
-	struct file* next;			//下一结点
-}File, * FilePtr;
+	uint x,y;        //防御塔起始坐标
+	uint model;      //坦克图案模型，值为1(普通）,2(双弹)，3（多弹）
+	uint stop;       //只能防御塔使用的参数，非0代表坦克不能走动,0为可以走动
+	uint live;     //防御塔生命
+	uint CT;         //发射子弹冷却计时
+	uint attribute;   //是否敌方坦克参数，我的坦克此参数为1,为常量
+	uint alive;     //存活为1，不存活为0
+}  TA;
 
 
-
-//文件夹二叉树 
-typedef struct folder
+typedef struct cursor      //敌人结构体
 {
-	char folder_title[51];		//文件夹名
-	Tag folder_tag[5];			//文件夹标签（最多5个）
-	FilePtr file_head;			//文件头指针（文件，若无文件=NULL）、
-	struct folder* left, * right;	//左右孩子结点
-}Folder, * FolderPtr;
+	
+	uint x,y;       //坐标
 
+}Cursor;
 
 
 
-//二叉树根 
-typedef struct folderhead
-{
-	FolderPtr root;				//根节点
-}FolderTree, * FolderTreePtr;
 
+				   
+#define uu 1
+#define ll 2
+#define dd 3
+#define	rr 4
 
+extern  uint com;
+extern  uint read;
+extern uchar Di_quantity;//地图中敌人数量
+extern uchar resist[8][30];//确定防御塔的坐标
+extern uchar enemy[8][30];//用于确定敌人的坐标
+extern Cursor cursor_m;
+extern Enemy Di[10];
 
+//extern uint com;
+//-------------------------------------------
+// 管脚定义 
+//------------------------------------------
+sbit CD=P2^0;// ? ? //数据(L)/命令(H)选择
+sbit WRIT=P2^1; //? ? //写，低电平有效
+sbit CE=P2^2; //? ? //使能,低电平有效
+sbit FS1 = P2^3	;//1为6*8
+sbit MD2 = P2^4 ;
 
 
-//用户单链表
-typedef struct user
-{
-	char user_name[31];			//用户名
-	char user_password[31];		//密码
-	char user_id[31];			//证件号码
-	struct user* user_next;     //下一个用户
-	FolderTreePtr user_folder;	//用户的根目录
-}User, * UserPtr;
+extern uint num;
+extern Cursor cursor_m;
+extern uchar code private1[72];
+//===========================================
+// 函数声明
+//-------------------------------------------
+void delay_lcd(char);
+void write_data(char);
+void write_text(char);
+void write_com(char);
+void clr_lcd(char,char,int);
+void lcd_init_graph();
+void lcd_init_text();
+void text_out(char a);
+int asc2lcd(int asc);
+void print_string(char* str);
+void text_location(int place);
+void status_check();
+void cursor_position();
+void write_lcd8(uchar x,uchar y,char *cha);
+void write_lcd16(uchar x,uchar y,char *cha);
+void write_lcd24(uchar x,uchar y,char *cha);
+void write_lcd24_24(uchar x,uchar y,char *cha);
+void clear_all();
+void clear_part(uchar x,uchar y,uchar length);
+void cursor_flash(uchar x,uchar y);	 
+void cursor_move(uint temp_x,uint temp_y);
+void c_pass_choice();
+/***********************************************************
+*********************************************************/
 
 
+//开始界面
 
-extern User* user;//用户链表头指针
-extern FolderPtr Q_p;
+void Start_interface();
+void print_enemy1(uchar x,uchar y);
 
-void build_dir(User* newn);//注册时初始化目录
-Status DIR_init(FolderTreePtr* F_T);//文件目录树初始化
-Status DIR_insert(FolderPtr);//文件夹插入
 
 
-User* user_name_search(User* user_temp, char* name_input);
-User* user_id_search(User* user_temp, char* id_input);
 
+/*************************************************************
+************************************************************/
 
 
+/*************************************************************
+************************************************************/
+void print_enemy1(uchar x,uchar y);
+void init_enemy();
+void enemy_move();
 
-//页面设计函数
 
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void HideCursor();    //隐藏光标
-void toxy(int x, int y);    //将光标移动到X,Y坐标处
-void color(short x);     //设置颜色
+/*************************************************************
+************************************************************/
 
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/*************************************************************
+************************************************************/
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void init();
+void scon();
+void c_pass1();
+void c_pass2();
+void c_pass3();
 
 
-FolderPtr Find_folder(FolderTreePtr F_T, char* name);
-Status Tree_Traverse(FolderTreePtr F_T, void (*fvisit)(FolderPtr q));
-void visit(FolderPtr p);//打印结点；
 
-//功能队列
-
-typedef struct Qnode
-{
-	FolderPtr pdata;                   //数据域指针
-	struct Qnode* Qnext;            //指向当前结点的下一结点
-} QNode;
-
-
-typedef struct Lqueue
-{
-	QNode* front;                   //队头
-	QNode* rear;                    //队尾
-	size_t length;            //队列长度
-} LQueue;
-
-
-
-//初始化队列
-Status Queue_Init(LQueue** q);
-//判断队列是否为空
-Status Queue_Empty(LQueue* q);
-//进队
-Status Queue_In(LQueue** q, FolderPtr BNode);
-//出队
-Status Queue_Out(LQueue** q);
-//队头
-FolderPtr Queue_Front(LQueue* q);
-
-
-
-//真实文件操作（吴滨楠）
-////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-
-//folder.c
-
-Status CreateFolder(char* folderTitle);				//创建文件夹
-Status ReturnFolder();						//将路径切换为当前目录的父目录
-Status ChangeFolder(char* folderTitle);				//将路径切换为命令中输入的文件夹路径
-Status PrintFolder();						//打印当前路径	/*没做要求的*/
-
-//file.c
-
-Status CreateFile(char* fileTitle);			//创建文件
-Status DeleteFile(char* fileTitle);			//删除文件
-Status RenameFile(char* fileTitle, char* newfileTitle);	//重命名文件
-
-
-//command.c
-
-Status SplitCommand(char *str,char *order,char *title0,char *title1);	//切割指令
-Status IsCommand(char* title);
-
-
-
-
-////////////////////////////////////////////////////////////////////////////////////
-
-
-
-
-//文件夹树操作（吴滨楠）
-////////////////////////////////////////////////////////////////////////////////////
-
-Status DIR_insert(FolderPtr F_path, char* title);			//新建文件夹
-Status DIR_delete(FolderPtr F_path, char* title);			//删除文件夹（及里面的文件夹和文件）
-Status DIR_destroy(FolderPtr p);					//销毁二叉树（删除文件夹的辅助函数）
-Status DIR_move(FolderPtr F_path, char* oldtitle, char* newtitle);	//移动文件夹
-
-
-
-/////////////////////////////////////////////////////////////////////////////////////
-
-//文件链表操作（吴滨楠）
-/////////////////////////////////////////////////////////////////////////////////////
-
-Status FILE_insert(FolderPtr F_path, char* title);				//新建文件
-Status FILE_delete(FolderPtr F_path, char* title);				//删除文件
-Status FILE_move(FolderPtr F_path, char* file_title, char* folder_title);		//移动文件
-Status FILE_rename(FolderPtr F_path, char* oldtitle, char* newtitle);		//重命名文件
-
-//////////////////////////////////////////////////////////////////////////////////////
-
-//路径修改（吴滨楠）
-//Status PATH_return(FolderTreePtr F_T, FolderPtr* F_path);	//修改路径为父目录
-Status PATH_next(FolderPtr* F_path, char* title);		//修改路径为子目录
-
-
-
-//文件链表（黄广超）
-Status InitList(FilePtr* p);						//初始化
-Status InsertList(FilePtr p, char* file_name);				//插入
-Status DestoryList(FilePtr* p);						//销毁链表
-Status DeleteByName(FilePtr p, char* file_title);			//按文件名删除
-Status printList(FilePtr p);						//打印所有文件名
-FilePtr searchByName(FilePtr p, char* file_title);			//按名字查找
-Status AddTag(FilePtr p, char* file_title, char* TagNode);		//添加标签
-Status ReName(FilePtr p, char* PreFile_title, char* NewFile_title);	//重命名
-
-
-
-
-Status deldir(char* p);
-
-//改变文件路径路径
-Status mvfile(char* p);
-
-
-
-//FolderTag.c
-Status AddFolderTag(FolderTreePtr F_T, char* folder_title, char* TagNode);
-FolderPtr SearchByTag_Names(FolderTreePtr F_T, char* TagNode);
-FolderPtr SearchByTag_Namesa(FolderPtr F_T, char* TagNode);
+/*************************************************************
+************************************************************/
+#endif

@@ -1,0 +1,7 @@
+"test_main.obj",
+"LM4229.obj",
+"interface.obj",
+"interrupt.obj",
+"enemy.obj" 
+TO "test" 
+RAMSIZE(256) 
