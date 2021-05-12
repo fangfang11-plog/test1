@@ -552,14 +552,8 @@ void clear_part(uchar x,uchar y,uchar length)
 		
 		
 		}
-	
-	
-	
-	
-	
+		
     }
 
 }							   
-
-
 

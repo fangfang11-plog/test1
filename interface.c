@@ -3,6 +3,15 @@
 #include"data.h"
 sbit LED = P1^0;
 extern Cursor cursor_m;
+//extern TA  resist[8][30];//确定防御塔的坐标
+//extern Enemy  Di[8][30];
+uchar Di_quantity;//地图中敌人数量
+Enemy Di[10];
+TA resist[10];
+uchar resist_quantity;
+uchar Di_si ;//死亡敌人个数
+//extern TA resist[8][30];//确定防御塔的坐标
+//extern Enemy Di[8][30];//用于确定敌人的坐标
 /*******************************************************************************
 * 函 数 名         : Start_interface()
 * 函数功能         : 开始界面显示
@@ -109,9 +118,9 @@ void Start_interface(){
 * 输    入         : 坐标
 * 输    出         : 无
 *******************************************************************************/
-void cursor_flash(uchar x,uchar y)
+void cursor_flash(uchar x,uchar y)//此处x最大值为128，y最大值为30
 {//x为行坐标，y为列坐标
-   
+
     int place;
 	int temp_x = x;	 
 	int temp_y = y;
@@ -171,12 +180,27 @@ void cursor_flash(uchar x,uchar y)
 		_nop_();
 		if(com != 0)
 		{
+			if(com == 0xF0)
+			{
+			  
+			  com = 0;
+		      LED = ~LED ;
+			  EA = 0;
+			  clear_all();
+		
+			  break;//退出游戏
+			
+			
+			}
+			else
+			{
 	    	cursor_move(temp_x,temp_y);
 		    temp_x = cursor_m.x;
 			temp_y = cursor_m.y;
 			x = temp_x;
 			y = temp_y;
 			com = 0;
+			}
 		}
 	}
 }
@@ -195,12 +219,19 @@ void cursor_move(uint temp_x,uint temp_y)
 {
 
  while(com != 0){
-	LED = ~LED;
+
+	 if(com == 0x08)
+	 {
+
+	    active_TA1(cursor_m.x/16, cursor_m.y /2);
+		com = 0;
+	 }
+	 else 
 	 if(com == 0x02)
 	 {
 		 clear_part(temp_x,temp_y,2);
 		 write_lcd16(temp_x,temp_y,hei);
-	     cursor_m.x-=40;
+	     cursor_m.x-=16;
 		 com = 0;
 		//cursor_flash(cursor_m.x,cursor_m.y);
 	 }
@@ -212,10 +243,11 @@ void cursor_move(uint temp_x,uint temp_y)
 		 com = 0;
 	//	 cursor_flash(cursor_m.x,cursor_m.y);
 	 }
-	 else if(com ==0x0f){
+	 else if(com ==0x0f)
+	 {
 	 	 clear_part(temp_x,temp_y,2);
 		 write_lcd16(temp_x,temp_y,hei);
-	     cursor_m.x+=40;
+	     cursor_m.x+=16;
 	//	 cursor_flash(cursor_m.x,cursor_m.y);
 	     com = 0;
 	 }
@@ -225,7 +257,6 @@ void cursor_move(uint temp_x,uint temp_y)
 		 cursor_m.y+=2;
 		 com = 0;
 	//	 cursor_flash(cursor_m.x,cursor_m.y);
-	 
 	 }
 	 
 
@@ -240,27 +271,56 @@ void cursor_move(uint temp_x,uint temp_y)
 *******************************************************************************/
 void c_pass1()
 {
-   	
-	uint x = 100;
-	uint y = 30;
-   	uint i = 2;
-	uint j = 0;	  
-	for(;j < y;j+=2){
+
+   	uint count = 0;
+	uint x = 8;
+	uint y = 15;
+   	uint i = 0;
+	uint j = 0;	
+//	initialize(); 
+	//第一列防御塔
+	for(; j < y ;j++)
+	{
 	
-		write_lcd16(i ,j ,hei);
+		write_lcd16(i ,j*2 ,hei);
+//	    resist[0][j].alive = 1;
 
 	}
 	  
 	j = 0;
-	i = 2 + 60;
+	i = 48;
 
-	for(;j < y - 4;j+=2){
+	//第二列防御塔
+	for(;j < y -3;j++)
+	{
 	
-		write_lcd16(i ,j ,hei);
+		write_lcd16(i ,j*2 ,hei);
+//		 resist[3][j].alive = 1;
 
 	} 
-	init_enemy();
+	 
+	j = 0;
+	i = 112;
+	for(; j < y ;j++)
+	{
+	
+		write_lcd16(i ,j*2 ,hei);
+      //  resist[7][j].alive = 1;
 
+	}
+
+	for(count = 0;count < 6;count++)
+	{
+	
+	    write_lcd16(16*count+16,28,hei);
+	//	 resist[count+1][14].alive = 1;
+
+	}
+    timer0_init();
+    Di_quantity = 0;
+	resist_quantity = 0;
+	Di_si = 0;
+	init_enemy();
 	cursor_flash(cursor_m.x,cursor_m.y);
 
 }
@@ -427,21 +487,312 @@ void print_enemy1(uchar x,uchar y)
 
 }
 
+
 void init_enemy()
 {
-
-	print_enemy1(17,0);
-	Di[Di_quantity].x = 0;
+    if(Di_quantity<10){
+	
+	print_enemy1(16,0);
+   	Di[Di_quantity].x = 1;
 	Di[Di_quantity].y = 0;
-	Di[Di_quantity].direction = 0;
-	Di[Di_quantity].exist = 1;
-	Di[Di_quantity].live = 3;
-	enemy[0][0] = 1;
+	Di[Di_quantity].exist = 1; //存在
+	Di[Di_quantity].live = 3;//三点血
+	Di_quantity++;
+	
+	}
+
+}
+//划分地图为8*15个小块
+void to_down(Enemy*di)	 //输入目前位置
+{
+
+    clear_part((di->x)*16 ,(di->y)*2 ,2);
+	print_enemy1((di->x+1)*16,di->y*2);
+    di->x++;
+
+}
+
+
+
+void to_left(Enemy*di)	 //输入目前位置
+{
+
+    clear_part((di->x)*16 ,(di->y)*2 ,2);
+	print_enemy1((di->x)*16,(di->y)*2-2);
+    di->y--;
+
+}
+
+
+void to_right(Enemy*di)	 //输入目前位置
+{
+
+    clear_part((di->x)*16 ,(di->y)*2 ,2);
+	print_enemy1((di->x)*16,(di->y)*2+2);
+    di->y++;
+
+}
+
+
+
+void enemy_move1(){
+
+	uint i = 1;
+	uint j = 0; 
+	uint count = 0;
+
+   	for(count = 0;count < Di_quantity;count++){
+		  
+	    if(Di[count].exist == 1)
+		{
+			  if(Di[count].y < 13 &&Di[count].x <4)
+			  {
+			  	  to_right(&Di[count]);
+			  
+			  }
+			  else if(Di[count].y > 12&&Di[count].x < 6)
+			  {
+			  
+			      to_down(&Di[count]);
+			  
+			  
+			  }
+			  else if(Di[count].x > 5)
+			  {
+	
+				to_left(&Di[count]);
+	
+			  }
+	
+			  judge_TA1(Di[count].x,Di[count].y,&Di[count]);
+
+		 }
+	}
+//	for(i = 1 ;i < 8 ;i++){
+//	   	 
+//	    for(j = 0;j < 30;j++ ){
+////		 	print_enemy1((i+1)*16,j);
+////			delay();
+//
+//		 if(Di[i][j].exist == 1)
+//		 {//地图上该处存在敌人
+//		
+//			 print_enemy1(i*16,j);
+//		   	 delay();
+////				if(i < 7&&Di[i+1][j].exist == 0&&resist[i+1][j].alive==0)//下方无障碍时向下
+////				{//向下的坐标中有
+////
+////				  to_down(i,j); 
+////				
+////		
+////				}
+////				else if(Di[i][j].direction == ll&&Di[i][j-1].exist==0&&resist[i][j-1].alive==0){//无障碍时向左
+////				
+////				    to_left(i,j);
+////				
+////				}
+////				else if(Di[i][j].direction == ll&&(Di[i][j-1].exist!=0||resist[i][j-1].alive!=0)){//向左有障碍时改变方向
+////					 
+////					 Di[i][j].direction = rr;
+////					 to_right(i,j);
+////				
+////				
+////				}
+////				else if(Di[i][j].direction == rr&& Di[i][j+1].exist==0&&resist[i][j+1].alive==0){//无障碍时向左
+////				
+////					to_right(i,j);
+////				
+////				}
+////				else if(Di[i][j].direction == rr&&(Di[i][j-1].exist!=0||resist[i][j-1].alive!=0)){//向右有障碍时向左
+////				 
+////				 Di[i][j].direction = ll;
+////				 to_left(i,j);
+////				
+////				
+////				}
+//		
+//			 }
+//		}
+//
+//	}
+}	   
+
+
+void delay(){
+
+   uint i,j;
+   i = 100;
+   j = 1100;
+   for(;i > 0;i--){
+   
+   
+     for(j = 1100;j > 0;j--){
+	 
+	 
+	 }
+   
+   
+   } 
+
+}
+
+
+
+//激活防御塔
+void active_TA1(uchar x,uchar y)
+{
+
+    uint count = 0;
+	resist[resist_quantity].x = x;
+	resist[resist_quantity].y = y;
+   	resist[resist_quantity].alive = 1; //存在
+	resist[resist_quantity].model = 1;
+	resist[resist_quantity].interval = 1;//处于非冷却期
+    resist_quantity++;
+	if( x == 0&&y != 14)
+	{
+	
+		 write_lcd16(x*16+16,2*y,xj1);
+	
+	}
+	else if(x == 0&&y == 14)
+	{
+	
+		 write_lcd16(x*16 + 16,2*y - 2,xj1);//边角
+	
+	}
+	else if(x != 0&&y == 14)
+	{
+	
+	   write_lcd16(x*16,2*y-2,xj1);
+	   write_lcd16(x*16,2*y-4,xj1);
+	
+	}
+	else
+	{
+	
+     write_lcd16(x*16+16,2*y,xj1);
+	
+	}
+
 
 
 }
 
-void enemy_move(){
+//传入敌人位置8*15传入
+void judge_TA1(uchar x,uchar y,Enemy*di)
+{
+	 
+	uint count = 0;
+		
+	for(count = 0;count < resist_quantity; count++)
+	{
+		 
+		if(resist[count].x == x-1&&resist[count].y ==y)
+		{
+		  	LED = ~LED;
+			di->live--;//被击中，生命减少
+		
+			if(di->live ==0)
+			{
+			    clear_part(16*(di->x),2*(di->y),2);
+			   di->x = 0;
+			   di->y = 0;
+			   di->exist = 0;
+			  
+			   Di_si++;//死亡个数到达10时游戏结束
+			   if(Di_si == 10)
+			   {
+			   		game_win();
+			        //此处添加游戏失败界面
+					EA = 0;//游戏失败关闭中断
+			//		failed();
+			   
+
+			   }
+
+			
+			}
+		
+		
+		}
+		else if(resist[count].x == x&&(resist[count].y ==y+1||resist[count].y ==y+2))
+		{
+		
+		
+			di->live--;//被击中，生命减少
+			if(di->live ==0)
+			{
+			   
+			   di->x = 0;
+			   di->y = 0;
+			   di->exist = 0;
+			   Di_si++;//死亡个数到达10时游戏结束
+			   if(Di_si == 10)
+			   {
+			   
+			        //此处添加游戏失败界面
+					EA = 0;//游戏失败关闭中断
+					failed();
+			   
+
+			   }
+		
+		
+		}
+	
+	
+	}
+
+}
+
+}
+
+void rebuild_xj()
+{
+    uint count = 0;
+	uint x ;
+	uint y ;
+
+    for(count = 0;count < resist_quantity;count++)
+	{
+			x = resist[count].x;
+			y = resist[count].y;
+
+
+			if( x == 0&&y != 14)
+			{
+			
+				 write_lcd16(x*16+16,2*y,xj1);
+			
+			}
+			else if(x == 0&&y == 14)
+			{
+			
+				 write_lcd16(x*16 + 16,2*y - 2,xj1);//边角
+			
+			}
+			else if(x != 0&&y == 14)
+			{
+			
+			   write_lcd16(x*16,2*y-2,xj1);
+			   write_lcd16(x*16,2*y-4,xj1);
+			
+			}
+			else
+			{
+			
+		     write_lcd16(x*16+16,2*y,xj1);
+			
+			}
+
+
+
+
+
+	}
+  
+
 
 
 
@@ -450,3 +801,34 @@ void enemy_move(){
 
 
 
+
+
+void failed ()
+{
+
+  	clear_all();
+    write_lcd8(48,15,f);
+   write_lcd8(48,17,a);
+    write_lcd8(48,19,i);
+   write_lcd8(48,21,l);
+
+
+
+
+}
+
+
+
+void game_win()
+{
+
+   	clear_all();
+    write_lcd8(48,15, y);
+   write_lcd8(48,17, o);
+    write_lcd8(48,19, u);
+   write_lcd8(48,23, w);
+   write_lcd8(48,25,i);
+   write_lcd8(48,27,n);
+
+
+}

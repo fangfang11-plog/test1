@@ -1,9 +1,10 @@
-C51 COMPILER V9.01   TEST_MAIN                                                             05/11/2021 08:03:24 PAGE 1   
+C51 COMPILER V9.01   TEST_MAIN                                                             05/12/2021 22:45:04 PAGE 1   
 
 
 C51 COMPILER V9.01, COMPILATION OF MODULE TEST_MAIN
 OBJECT MODULE PLACED IN test_main.OBJ
-COMPILER INVOKED BY: C:\Users\12291\Desktop\新建文件夹\C51\BIN\C51.EXE test_main.c BROWSE DEBUG OBJECTEXTEND
+COMPILER INVOKED BY: C:\Users\12291\Desktop\新建文件夹\C51\BIN\C51.EXE test_main.c LARGE ROM(COMPACT) BROWSE DEBUG OBJEC
+                    -TEXTEND
 
 line level    source
 
@@ -13,73 +14,69 @@ line level    source
    4          #include"function.h"
    5          uint read;
    6          Cursor cursor_m;
-   7          
-   8          //0x08表示确定，0x04表示暂停，0x02表示光标向上，0x01表示光标向左，0x0f表示向下，0x80表示向右
+   7          sbit LED = P1^0;
+   8          //0x08表示确定，0x04表示暂停，0x02表示光标向上，0x01表示光标向左，0x0f表示向下，0x80表示向右,0XF0表示退出
    9          uint com;
-  10          uchar code private1[72] = {  0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x3F,0xFC,0x00,0x41,0x08,0x
-             -00,
-  11                                                                  0x88,0x30,0x00,0x80,0x60,0x01,0x80,0x40,0x02,0xC0,0xC0,0x04,0xC1,0x00,0x04,0x3F,
-  12                                                                  0x00,0x02,0x0C,0x00,0x00,0xCC,0x00,0x00,0x0C,0x00,0x00,0x0C,0x00,0x00,0x0C,0x80,
-  13                                                                  0x00,0x6D,0x60,0x00,0x5E,0xC0,0x00,0x3F,0x80,0x00,0x0C,0x00,0x00,0x0C,0x00,0x00,
-  14                                      0x0C,0x00,0x07,0xFF,0xF8,0x0F,0xFF,0xFC,};
-  15          //uint com;
-  16          
-  17          void main()
-  18          {
-  19   1          init();
-  20   1              com =0;
-  21   1              
-  22   1              Start_interface();
-  23   1          clear_all();
-  24   1      
-  25   1              c_pass_choice();
-  26   1          while(1){
-  27   2      
-  28   2                       if(com == 0x02)
-  29   2                       {
-  30   3                                      cursor_m.x = 0;
-  31   3                      cursor_m.y = 0;
-  32   3                           clear_all();
-  33   3                               com = 0;
-  34   3                               c_pass1();
-  35   3                                                
-  36   3                               cursor_move();
-*** WARNING C209 IN LINE 36 OF TEST_MAIN.C: '_cursor_move': too few actual parameters
-  37   3      //                   clear_all();                               
-  38   3                      
-  39   3                   }
-  40   2                       else if (com ==0x01)
-  41   2                       {
-  42   3                           clear_all();
-  43   3                           com = 0;
-  44   3                               c_pass2();
-  45   3                       
-  46   3                       }
-  47   2                       else if(com ==0x0f)
-  48   2                       {
-  49   3      
-  50   3                          clear_all();
-  51   3                              com = 0;
-  52   3                              c_pass3();
-  53   3                                               
-C51 COMPILER V9.01   TEST_MAIN                                                             05/11/2021 08:03:24 PAGE 2   
+  10          //uint com;
+  11          
+  12          void main()
+  13          {
+  14   1        
+  15   1      
+  16   1          init();
+  17   1              com =0;
+  18   1          LED = 0;
+  19   1      
+  20   1          while(1){
+  21   2                  Start_interface();//开始界面                 
+  22   2              while(com != 0x08);      //按键触发后进入选择界面
+  23   2                      com = 0;
+  24   2                      clear_all();
+  25   2                  c_pass_choice();
+  26   2                      while(com!=0x02&&com!=0x01&&com != 0x0f);
+  27   2                       if(com == 0x02)
+  28   2                       {
+  29   3                              cursor_m.x = 0;
+  30   3                  cursor_m.y = 0;
+  31   3                           clear_all();
+  32   3                               com = 0;
+  33   3                               c_pass1();
+  34   3                              com = 0;
+  35   3      //                   clear_all();                               
+  36   3                      
+  37   3                   }
+  38   2                       else if (com ==0x01)
+  39   2                       {
+  40   3                           clear_all();
+  41   3                           com = 0;
+  42   3                               c_pass2();
+  43   3                       
+  44   3                       }
+  45   2                       else if(com ==0x0f)
+  46   2                       {
+  47   3      
+  48   3                          clear_all();
+  49   3                              com = 0;
+  50   3                              c_pass3();
+  51   3                                               
+  52   3                       }
+  53   2      
+  54   2              }
+C51 COMPILER V9.01   TEST_MAIN                                                             05/12/2021 22:45:04 PAGE 2   
 
-  54   3                       }
-  55   2      
-  56   2              }
-  57   1      
-  58   1      }
+  55   1      
+  56   1      }
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =     91    ----
-   CONSTANT SIZE    =     72    ----
-   XDATA SIZE       =   ----    ----
+   CODE SIZE        =    159    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =      8    ----
    PDATA SIZE       =   ----    ----
-   DATA SIZE        =      8    ----
+   DATA SIZE        =   ----    ----
    IDATA SIZE       =   ----    ----
    BIT SIZE         =   ----    ----
 END OF MODULE INFORMATION.
 
 
-C51 COMPILATION COMPLETE.  1 WARNING(S),  0 ERROR(S)
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
