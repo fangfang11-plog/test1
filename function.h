@@ -30,6 +30,14 @@ typedef struct TA      //防御塔结构体
 }  TA;
 
 
+
+typedef struct       //家结构体
+{
+	uint x,y;       //坐标
+
+}Home;
+
+
 typedef struct cursor      //敌人结构体
 {
 	
@@ -60,8 +68,6 @@ sbit CE=P2^2; //? ? //使能,低电平有效
 sbit FS1 = P2^3	;//1为6*8
 sbit MD2 = P2^4 ;
 
-
-
 extern Cursor cursor_m;
 extern uchar code private1[72];
 //===========================================
@@ -91,6 +97,7 @@ void cursor_move(uint temp_x,uint temp_y);
 void c_pass_choice();
 void initialize();
 void delay();
+void display_num(uchar x,uchar y,uchar num);
 /***********************************************************
 *********************************************************/
 
@@ -102,6 +109,7 @@ void print_enemy1(uchar x,uchar y);
 void active_TA1(uchar x,uchar y);
 void judge_TA1(uchar x,uchar y,Enemy*di);
 void failed ();
+void pass1_function();
 
 /*************************************************************
 ************************************************************/
@@ -117,8 +125,7 @@ void rebuild_xj();
 void game_win();
 //extern TA resist[10];
 //extern Enemy  Di[10];
-
-
+void judge_home(uchar x,uchar y,Enemy*di);
 
 
 /*************************************************************
