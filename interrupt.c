@@ -5,6 +5,7 @@ uint num;
 sbit LED = P1^0;
 
 extern uchar game1_end;
+extern uchar game4_end;
 void init()
 {
 	
@@ -66,7 +67,6 @@ void timer0()interrupt 1
 
 	pass1_function();  //进行关卡一时进入关卡一功能
 
-
 }
 
 
@@ -84,10 +84,10 @@ void pass1_function()
 	 if(game1_end == 0)
 	 {
 
-		 if(num > 20 )
+		 if(num > 39 )
 		 {
 		
-			if(num %20 == 0)
+			if(num % 40 == 0)
 			{ 
 			 
 		    	enemy_move1(); 
@@ -116,5 +116,45 @@ void pass1_function()
 
 }
 
+
+void pass4_function()
+{
+
+	 if(game4_end == 0)
+	 {
+
+		 if(num > 19 )
+		 {
+		
+			if(num % 20 == 0)
+			{ 
+			 
+		    	enemy_move1(); 
+			
+
+			}
+			 if(num % 40 == 0)
+			{
+			
+			    init_enemy();
+			 
+			}  	   
+			if(num % 100 ==0)
+			{
+			   num = 0;  
+			   rebuild_xj();
+			  
+			    //包括真实与屏幕陷阱的建立
+			  
+			}
+	
+		}
+
+	}
+
+
+
+
+}
 
 

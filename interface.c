@@ -18,6 +18,9 @@ uchar score;  //过一关得一分
 uchar game1_end;//为一时关卡一结束
 uchar game2_end;
 uchar game3_end;
+uchar game4_end;
+uchar game5_end; 
+uchar pao_symbol;//用于判断是否被炮打中，打中为一
 
 uchar resist_quantity;//防御塔数量
 
@@ -278,8 +281,16 @@ void cursor_move(uint temp_x,uint temp_y)
 
 	 if(com == 0x08)  //用户设置防御塔
 	 {
+		if(game4_end == 0&&TA_inprove()==1)
+		{
 
-	    active_TA1(cursor_m.x/16, cursor_m.y /2);
+	    }
+		else
+		{
+
+		active_TA1(cursor_m.x/16, cursor_m.y /2);
+
+		}
 		com = 0;
 	 }
 	 else 
@@ -413,7 +424,7 @@ void c_pass1()
 * 输    入         : 无
 * 输    出         : 无
 *******************************************************************************/
-void c_pass2()
+void c_pass4()
 {
     
    	uint count = 0;
@@ -421,9 +432,10 @@ void c_pass2()
 	uint y = 15;
    	uint i = 0;
 	uint j = 0;	
-
+	game4_end = 0;
 	//绘图，8*15方式
 	//第一列防御塔
+
 	for(; j < y ;j++)
 	{
 	
@@ -431,13 +443,23 @@ void c_pass2()
 
 	}
 	
+	i = 48;
+	j = 0 ;
+	for(;j < y - 7;j++)
+	{
+	   
+	   write_lcd16(i,j*2,hei);
+	
+	}
+
+
    	for(count = 0;count < 6;count++)
 	{
 	
-	    write_lcd16(16*count+16,28,hei);
-	//	 resist[count+1][14].alive = 1;
+	    write_lcd16(16*count+16,28,pao);
 
 	}
+
 
 	//显示游戏信息
     write_lcd8(112,2,c1);
@@ -455,7 +477,25 @@ void c_pass2()
     write_lcd8(112,20,p2);
     write_lcd8(112,22,num3);
 	  
+	timer0_init();//初始化定时器0
+    Di_quantity = 0;  //敌人数量初始化为0
+	resist_quantity = 0;  //防御塔数量初始化为0
+	Di_si = 0;
+	game1_end = 0;//游戏开始
+	game2_end = 0;
+//初始化家结构体
+	for(count = 0;count < 3;count++){
+	
+		 home[count].x = 4 + count;
+	     home[count].y = 0;
+	
+	}
+	
 
+	home_hp  = 3;//可接受三个敌人攻击
+	init_enemy();
+	cursor_flash(cursor_m.x,cursor_m.y);
+    game4_end = 1;
 
 }
 
@@ -633,13 +673,15 @@ void to_right(Enemy*di)	 //输入目前位置
 
 
 
-void enemy_move1(){
+void enemy_move1()
+{
 
 	uint i = 1;
 	uint j = 0; 
 	uint count = 0;
 
-   	for(count = 0;count < Di_quantity;count++){
+   	for(count = 0;count < Di_quantity;count++)
+	{
 		  
 	    if(Di[count].exist == 1)
 		{
@@ -663,14 +705,17 @@ void enemy_move1(){
 			  }
 	
 			  judge_TA1(Di[count].x,Di[count].y,&Di[count]);
+			  judge_pao(Di[count].x,Di[count].y,&Di[count]);
+			  
 			  judge_home(Di[count].x,Di[count].y,&Di[count]); //函数判断房子生命为0时要退出游戏
 			  if(game1_end == 1){
+
 			   break;
 			  
 			  }
 
 		 }
-	}
+	}	
 
 }	   
 
@@ -716,7 +761,7 @@ void active_TA1(uchar x,uchar y)
 		resist[resist_quantity].x = x;
 		resist[resist_quantity].y = y;
 	   	resist[resist_quantity].alive = 1; //存在
-		resist[resist_quantity].model = 1;
+		resist[resist_quantity].level = 1;//等级一，初级防御塔
 		resist[resist_quantity].interval = 0;//处于非冷却期
 	    resist_quantity++;
 
@@ -791,9 +836,10 @@ void judge_TA1(uchar x,uchar y,Enemy*di)
 	
 				if(resist[count].interval == 0)
 				{
-				  	LED = ~LED;
-					di->live--;//被击中，生命减少
+				  	LED = ~LED;		
 				    resist[count].interval = 1;//进入冷却期
+					di->live--;//被击中，生命减少
+				 
 					 
 					if(di->live ==0)
 					{
@@ -870,6 +916,75 @@ void judge_TA1(uchar x,uchar y,Enemy*di)
 *******************************************************************************/
 
 
+
+void judge_pao(uchar x,uchar y,Enemy*di)
+{
+
+	 uint count = 0;
+	 uchar i = 0;
+     for(count = 0;count < resist_quantity; count++)
+	 {
+	 
+	 	 if(resist[count].level != 2)
+		 {
+		 	continue;
+		 
+		 }
+		 else{
+									 
+			if(resist[count].x == x)//横向击中
+			{
+				//屏幕显示射线
+				for(i = 0;i < 30 ;i+=2)
+				{
+					write_lcd16(16*x, i , ray);//射线击中直接死亡	 
+				}	   
+				
+			}
+			if(resist[count].y == y)//横向击中
+			{
+				    
+
+				for(i = 16;i < 128 ;i+=16)
+				{
+					write_lcd16(i , y , ray);//射线击中直接死亡
+				}	   
+			
+			
+			}	
+
+			 pao_symbol = 0;
+			 di->live = 0;//被击中，生命减少
+			 //显示敌人个数界面
+
+			 di->x = 0;
+			 di->y = 0;
+			 di->exist = 0;	 //重置结构体
+			 Di_si++;//死亡个数到达9时游戏结束
+		     clear_part(112,17,2);
+		     clear_part(112,7,2);
+		     cash++;//死一个敌人加一个现金
+		     display_num(112,7,cash);
+		     display_num(112,17,9 - Di_si);
+
+			 resist[count].level = 1;//降级
+			 write_lcd16(16*resist[count].x,2*resist[count].y,hei);//恢复为防御塔
+
+			 if(Di_si == 9)	  //死亡九个游戏成功
+			 {	
+			   
+			    ET0 = 0;//  关中断
+			   	game_win();   
+				break; //跳出循环，减少步骤
+			 
+			 } 
+	
+	 	}
+	
+	 }
+
+
+} 
 
 
 /*******************************************************************************
@@ -1099,7 +1214,29 @@ void game_win()
 	com = 0;
 }
 
+Status TA_inprove()	//判断是否已存在防御塔，存在升级为炮
+{
+	 uint count = 0;
 
+	 for(count = 0;count < resist_quantity;count++){
+	 
+	 	if(resist[count].x == cursor_m.x/16 && resist[count].y == cursor_m.y / 2)
+		{
+
+		     resist[count].level = 2;//升级
+			 write_lcd16(resist[count].x*16,2*resist[count].y,pao);
+			 return SUCCESS;
+		
+		}
+	 
+	 
+	 
+	 }
+
+	 return ERROR;
+
+
+}
 
 
 

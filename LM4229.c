@@ -362,6 +362,9 @@ write_com(0x94); //text on graphic off
 
 
 
+
+
+
 void write_lcd8(uchar x,uchar y,char *cha)//x为行坐标，y为列坐标																																				·········································
 {
     int place;
@@ -391,6 +394,9 @@ void write_lcd8(uchar x,uchar y,char *cha)//x为行坐标，y为列坐标																
 	}
 
 }
+
+
+
 
 
 void write_lcd16(uchar x,uchar y,char *cha)//x为行坐标，y为列坐标
@@ -424,6 +430,10 @@ void write_lcd16(uchar x,uchar y,char *cha)//x为行坐标，y为列坐标
 
 
 
+
+
+
+
 void write_lcd24(uchar x,uchar y,char *cha)//x为行坐标，y为列坐标
 {
     int place;
@@ -452,6 +462,9 @@ void write_lcd24(uchar x,uchar y,char *cha)//x为行坐标，y为列坐标
     
 	}
 }
+
+
+
 
 
 
@@ -492,10 +505,6 @@ void write_lcd24_24(uchar x,uchar y,char *cha)//x为行坐标，y为列坐标
 
 
 
-
-
-
-
 void clear_all()
 {
 
@@ -521,6 +530,8 @@ void clear_all()
     }
 
 }
+
+
 
 
 

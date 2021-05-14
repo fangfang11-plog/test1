@@ -5,6 +5,9 @@
 #define uchar unsigned char
 #define uint unsigned int
 #define DATA_PORT P0
+#define Status int
+#define ERROR 0
+#define SUCCESS 1
 //-------------------------------------------
 // 结构体定义
 //------------------------------------------
@@ -23,7 +26,7 @@ typedef struct TA      //防御塔结构体
 {
     uint x;
 	uint y;                 //防御塔起始坐标
-	uint model;      //塔的图案模型，值为1(普通）,2(双弹)，3（多弹）
+	uint level;      //塔的图案模型，值为1(普通）,2(双弹)，3（多弹）
 	uint stop;       //只能防御塔使用的参数，非0代表坦克不能走动,0为可以走动
 	uint interval;         //发射子弹冷却计时
 	uint alive;     //存活为1，不存活为0
@@ -126,7 +129,7 @@ void game_win();
 //extern TA resist[10];
 //extern Enemy  Di[10];
 void judge_home(uchar x,uchar y,Enemy*di);
-
+void c_pass4();
 
 /*************************************************************
 ************************************************************/
@@ -142,7 +145,7 @@ void scon();
 void c_pass1();
 void c_pass2();
 void c_pass3();
-
+void judge_pao(uchar x,uchar y,Enemy*di);
 
 
 /*************************************************************
