@@ -112,7 +112,8 @@ void print_enemy1(uchar x,uchar y);
 void active_TA1(uchar x,uchar y);
 void judge_TA1(uchar x,uchar y,Enemy*di);
 void failed ();
-void pass1_function();
+void pass_function();
+Status TA_inprove();
 
 /*************************************************************
 ************************************************************/

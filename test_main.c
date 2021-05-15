@@ -21,13 +21,16 @@ void main()
 	cash = 10; //初始现金量
     score = 0; //得分
     while(1){
-	    Start_interface();//开始界面		 
+	    Start_interface();//开始界面
+			
+	    
+
         while(com != 0x08);	 //按键触发后进入选择界面
 		com = 0;
 		clear_all();
 	    c_pass_choice(); 
-			cursor_m.x = 0;
-            cursor_m.y = 0;
+		cursor_m.x = 0;
+        cursor_m.y = 0;
 		while(com!=0x02&&com!=0x01&&com != 0x0f);
 		 if(com == 0x02)
 		 {
@@ -43,7 +46,7 @@ void main()
 		 {
 		     clear_all();
 		     com = 0;
-			 c_pass4();
+			 c_pass2();
 			 com = 0;
 		 
 		 }
