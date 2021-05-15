@@ -3,7 +3,7 @@
 
 extern uint num;
 sbit LED = P1^0;
-
+extern uchar score;
 void init()
 {
 	
@@ -60,12 +60,11 @@ void timer0_init()
 void timer0()interrupt 1
 {
     
+
+    num++;
+	pass_function();  //进行关卡一时进入关卡一功能
 	TH0 = (65536 - 45972)/256;
     TL0 = (65536 - 45872)%256;
-    num++;
-
-	pass_function();  //进行关卡一时进入关卡一功能
-
 }
 
 

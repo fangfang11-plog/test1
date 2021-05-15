@@ -18,7 +18,7 @@ typedef struct       //敌人结构体
 	uint x,y;       //坐标
 	uint exist;     //敌人存在与否的变量,1为存在，0不存在
 	uint live;   //子弹是否处于建立初状态的值，1为处于建立初状态，0为处于非建立初状态
-	uint attribute; //区分敌人与防御塔的标记,敌人为玩家（我的）子弹
+	uint level;
 
 } Enemy;
 
@@ -27,9 +27,8 @@ typedef struct TA      //防御塔结构体
     uint x;
 	uint y;                 //防御塔起始坐标
 	uint level;      //塔的图案模型，值为1(普通）,2(双弹)，3（多弹）
-	uint stop;       //只能防御塔使用的参数，非0代表坦克不能走动,0为可以走动
 	uint interval;         //发射子弹冷却计时
-	uint alive;     //存活为1，不存活为0
+	uint alive;
 }  TA;
 
 
@@ -106,7 +105,7 @@ void display_num(uchar x,uchar y,uchar num);
 
 
 //开始界面
-
+void c_pass5();
 void Start_interface();
 void print_enemy1(uchar x,uchar y);
 void active_TA1(uchar x,uchar y);
@@ -114,7 +113,7 @@ void judge_TA1(uchar x,uchar y,Enemy*di);
 void failed ();
 void pass_function();
 Status TA_inprove();
-
+void rebuild_information();
 /*************************************************************
 ************************************************************/
 
@@ -134,13 +133,13 @@ void c_pass4();
 
 /*************************************************************
 ************************************************************/
-
+void end_game();
 
 
 /*************************************************************
 ************************************************************/
 
-
+void digital(uchar score);
 void init();
 void scon();
 void c_pass1();

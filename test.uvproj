@@ -371,6 +371,11 @@
               <FileType>1</FileType>
               <FilePath>.\enemy.c</FilePath>
             </File>
+            <File>
+              <FileName>digital.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\digital.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

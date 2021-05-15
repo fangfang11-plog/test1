@@ -50,7 +50,8 @@ void cursor_position()
 * 输    出         : 无
 *******************************************************************************/
 
-void write_data(char dat){
+void write_data(char dat)
+{
 
 	//status_check();
 	CD=0;                         //数据
@@ -134,7 +135,8 @@ void write_com(char com){
 * 输    入         : 坐标
 * 输    出         : 无
 *******************************************************************************/
-void clr_lcd(char x,char y,int length){
+void clr_lcd(char x,char y,int length)
+{
 
 	int i,place;
 	place=x*30+y;

@@ -2,9 +2,8 @@
 #include<stdilb.h>
 #include"function.h"
 #include"data.h"
-sbit LED = P1^0;
 extern Cursor cursor_m;
-
+sbit Buzzer = P2^6;
 uchar Di_quantity;//地图中敌人数量
 
 Enemy Di[10];
@@ -12,7 +11,7 @@ TA resist[10];
 Home home [3];
 uint num;
 
-
+uchar home_quantity;
 uchar cash ;  //打死一敌人一个现金
 uchar score;  //过一关得一分
 
@@ -239,6 +238,23 @@ void cursor_flash(uchar x,uchar y)//此处x最大值为128，y最大值为30
 
 			if(com != 0)	 //闪烁过程中判断指令是否为0
 			{
+				if(com == 0x04)//暂停指令
+				{
+				   com = 0;
+				   TR0 = 0;
+				   while(1)
+				   {
+				   	  if(com != 0)
+					  {
+					   break;
+					  
+					
+					  }
+				   
+				   }
+
+				
+				}
 				if(com == 0xF0)	   //接收退出指令，手动退出游戏
 				{
 				  
@@ -304,30 +320,77 @@ void cursor_move(uint temp_x,uint temp_y)
 		com = 0;
 
 	 }
-	 else 
-	 if(com == 0x02)
+	 else if(com == 0x02) //向上
 	 {
-		 clear_part(temp_x,temp_y,2);
-		 write_lcd16(temp_x,temp_y,hei);
-	     cursor_m.x-=16;
-		 com = 0;
+		 
+		 if(cursor_m.x != 0)
+		 {
+			 
+		     if(cursor_m.y == 28)
+			 {
+				 
+				 clear_part(temp_x,temp_y,2);
+				 write_lcd16(temp_x,temp_y,hei);
+			     cursor_m.x-=16;
+				 
+			 }
+	         else if(game1_end == 0)
+			 {
+	
+				clear_part(temp_x,temp_y,2);
+				write_lcd16(temp_x,temp_y,hei);
+			    cursor_m.x-=32;
+	
+			 }
+			 else if(game1_end == 1)
+			 {
+			 	clear_part(temp_x,temp_y,2);
+				write_lcd16(temp_x,temp_y,hei);
+			    cursor_m.x-=48;
+			 
+			 
+			 }
+		 }
+		 com = 0; 
 	 }
-	 else if(com ==0x01)
+	 else if(com ==0x01)   //向左
 	 {
 	 	 clear_part(temp_x,temp_y,2);
 	 	 write_lcd16(temp_x,temp_y,hei);
 	     cursor_m.y-=2;
 		 com = 0;
 	 }
-	 else if(com ==0x0f)
+	 else if(com ==0x0f)		 //向下
 	 {
-	 	 clear_part(temp_x,temp_y,2);
+		if(cursor_m.y == 28)
+		{
+	 	 
+		 clear_part(temp_x,temp_y,2);
 		 write_lcd16(temp_x,temp_y,hei);
 	     cursor_m.x+=16;
-
+		
+		}
+		else if(game1_end == 0)
+		{
+	
+			clear_part(temp_x,temp_y,2);
+			write_lcd16(temp_x,temp_y,hei);
+			cursor_m.x+=32;
+	
+		}
+		else if(game1_end == 1)
+		{
+			
+			clear_part(temp_x,temp_y,2);
+			write_lcd16(temp_x,temp_y,hei);
+			cursor_m.x+=48;
+			 
+			 
+		}
 	     com = 0;
 	 }
-	 else if(com == 0x80){
+	 else if(com == 0x80)
+	 {	                          //向右
 
 	 	 clear_part(temp_x,temp_y,2);
 	     write_lcd16(temp_x,temp_y,hei);
@@ -427,18 +490,20 @@ void c_pass1()
 
 
 //初始化家结构体
-	for(count = 0;count < 3;count++){
+	for(count = 0;count < 2;count++){
 	
-		 home[count].x = 4 + count;
+		 home[count].x = 5 + count;
 	     home[count].y = 14;
 	
 	}
+	home_quantity =2;
 
 	home_hp  = 3;//可接受三个敌人攻击
 	init_enemy();
 	cursor_flash(cursor_m.x,cursor_m.y);
 
-	//结束关卡三
+	//结束关卡一
+	rebuild_information();
 	game1_end = 1;
 
 }
@@ -502,8 +567,8 @@ void c_pass2()
 	write_lcd8(112,13,e2);
 	write_lcd8(112,14,m);
 //	write_lcd8(112,15,y);
-    write_lcd8(112,17,num9);  //敌人个数
-    write_lcd8(112,19,h1);
+   display_num(112,17,9);
+	write_lcd8(112,19,h1);
     write_lcd8(112,20,p2);
     write_lcd8(112,22,num3);
 	
@@ -528,12 +593,14 @@ void c_pass2()
 	
 	}
 
+	home_quantity = 3;
 	home_hp  = 3;//可接受三个敌人攻击 
 
 	init_enemy();
 	cursor_flash(cursor_m.x,cursor_m.y);
 
-	//结束关卡三
+	//结束关卡二
+	rebuild_information();
 	game2_end = 1;
 
 
@@ -623,21 +690,23 @@ void c_pass3()
 	     home[count].y = 0;
 	
 	}
-
+	
+	home_quantity = 3;
 	home_hp  = 3;//可接受三个敌人攻击 
 
 	init_enemy();
 	cursor_flash(cursor_m.x,cursor_m.y);
 
 	//结束关卡三
+	rebuild_information();//重置信息
 	game3_end = 1;
 
 }
 
 
 /*******************************************************************************
-* 函 数 名         : c_pass2()
-* 函数功能         : 关卡2界面显示
+* 函 数 名         : c_pass4()
+* 函数功能         : 关卡4界面显示
 * 输    入         : 无
 * 输    出         : 无
 *******************************************************************************/
@@ -708,10 +777,12 @@ void c_pass4()
 	
 	}
 	
-
+	home_quantity = 3;
 	home_hp  = 3;//可接受三个敌人攻击
 	init_enemy();
 	cursor_flash(cursor_m.x,cursor_m.y);
+	//结束关卡四
+	rebuild_information();//重置信息
     game4_end = 1;
 
 }
@@ -719,8 +790,8 @@ void c_pass4()
 
 
 /*******************************************************************************
-* 函 数 名         : c_pass3();
-* 函数功能         : 关卡3界面显示
+* 函 数 名         : c_pass5();
+* 函数功能         : 关卡5界面显示
 * 输    入         : 无
 * 输    出         : 无
 *******************************************************************************/
@@ -728,33 +799,79 @@ void c_pass4()
 void c_pass5()
 {
     
-	uint x = 100;
-	uint y = 30;
-   	uint i = 2;
-	uint j = 0;
-	for(;j < y;j+=2){
+    uint count = 0;
+	uint x = 8;
+	uint y = 15;
+   	uint i = 0;
+	uint j = 0;	
+	game5_end = 0;//开始关卡三
+
+	//绘图，8*15方式
+	//第一列防御塔
+	for(; j < y ;j++)
+	{
 	
-		write_lcd16(i ,j ,hei);
+		write_lcd16(i ,j*2 ,hei);
 
 	}
-
+	  
 	j = 0;
-	i = 2 + 40;
+	i = 48;
 
-	for(;j < y -10;j+=2){
+	//第二列防御塔
+	for(;j <  y;j++)
+	{
 	
-		write_lcd16(i ,j ,hei);
+		write_lcd16(i ,j*2 ,hei);
 
-	}
+	} 
 
-	j = 10;
-	i = 2 + 40 + 40;
-
-	for(;j < y ;j+=2){
 	
-		write_lcd16(i ,j ,hei);
+	//显示游戏信息
+    write_lcd8(112,2,c1);
+    write_lcd8(112,3,a);	
+    write_lcd8(112,4,s);//金钱
+    write_lcd8(112,5,h2);
+    display_num(112,7,cash);
+	write_lcd8(112,11,e1);
+	write_lcd8(112,12,n);
+	write_lcd8(112,13,e2);
+	write_lcd8(112,14,m);
+    write_lcd8(112,17,num9);  //敌人个数
+    write_lcd8(112,19,h1);
+    write_lcd8(112,20,p2);
+    write_lcd8(112,22,num3);
+	
+//draw home
+    write_lcd16(16,28,home1);
+	write_lcd16(32,28,home2);
+	write_lcd16(48,28,home3);
 
+
+    timer0_init();//初始化定时器0
+    Di_quantity = 0;  //敌人数量初始化为0
+	resist_quantity = 0;  //防御塔数量初始化为0
+	Di_si = 0;
+
+//初始化家结构体
+	for(count = 0;count < 3;count++)
+	{
+	
+		 home[count].x = 1 + count;
+	     home[count].y = 14;
+	
 	}
+	home_quantity = 3;
+	home_hp  = 3;//可接受三个敌人攻击 
+
+	init_enemy();
+	cursor_flash(cursor_m.x,cursor_m.y);
+
+	//结束关卡三
+    rebuild_information();
+	game5_end = 1;
+
+
 
 
 
@@ -813,18 +930,54 @@ void c_pass_choice(){
 	    write_lcd8(62,18,l2); 
 		display_num(62,20,3);
 	
-		write_lcd8(78,9,r);
-		write_lcd8(78,10,i); 
-		write_lcd8(78,11,g);
-		write_lcd8(78,12,h2);
-		write_lcd8(78,13,t);
-		write_lcd8(78,14,maohao);
-		write_lcd8(78,15,l1); 
-		write_lcd8(78,16,e2);
-		write_lcd8(78,17,v);
-	    write_lcd8(78,18,e2);
-		write_lcd8(78,19,l2); 
-		display_num(78,21,4);
+		write_lcd8(78,9,d);
+		write_lcd8(78,10,o); 
+		write_lcd8(78,11,w);
+		write_lcd8(78,12,n);
+		write_lcd8(78,13,jiahao);
+		write_lcd8(78,14,u);
+	   	write_lcd8(78,15,p2);
+		write_lcd8(78,16,maohao); 
+		write_lcd8(78,17,l1);
+		write_lcd8(78,18,e2);
+		write_lcd8(78,19,v);
+		write_lcd8(78,20,e2); 
+		write_lcd8(78,21,l2);
+		display_num(78,23,3);
+
+		write_lcd8(95,9,d);
+		write_lcd8(95,10,o); 
+		write_lcd8(95,11,w);
+		write_lcd8(95,12,n);
+		write_lcd8(95,13,jiahao);
+		write_lcd8(95,14,l2);
+	   	write_lcd8(95,15,e2);
+		write_lcd8(95,16,f); 
+		write_lcd8(95,17,t);
+		write_lcd8(95,18,maohao);
+		write_lcd8(95,19,l1);
+		write_lcd8(95,20,e2); 
+		write_lcd8(95,21,v);
+		write_lcd8(95,22,e2);
+		write_lcd8(95,23,l2);
+		display_num(95,25,4);
+
+			write_lcd8(112,9,d);
+		write_lcd8(112,10,o); 
+		write_lcd8(112,11,w);
+		write_lcd8(112,12,n);
+		write_lcd8(112,13,jiahao);
+		write_lcd8(112,14,d);
+	   	write_lcd8(112,15,o);
+		write_lcd8(112,16,w); 
+		write_lcd8(112,17,n);
+		write_lcd8(112,18,maohao);
+		write_lcd8(112,19,l1);
+		write_lcd8(112,20,e2); 
+		write_lcd8(112,21,v);
+		write_lcd8(112,22,e2);
+		write_lcd8(112,23,l2);
+		display_num(112,25,5);
 
 
 
@@ -856,6 +1009,7 @@ void print_enemy1(uchar x,uchar y)
 
 void init_enemy()
 {
+	uint count = 0;
     if(Di_quantity<9){
 	
 	print_enemy1(16,0);
@@ -863,6 +1017,24 @@ void init_enemy()
 	Di[Di_quantity].y = 0;
 	Di[Di_quantity].exist = 1; //存在
 	Di[Di_quantity].live = 3;//三点血
+	Di[Di_quantity].level = 1;
+	if(Di_quantity > 6)
+	{
+	    Di[Di_quantity].live = 4;//三点血
+	}
+	if(Di_quantity > 8 &&(game4_end == 0||game5_end == 0))
+	{
+	   
+		Di[Di_quantity].level = 2;
+		write_lcd16(16,0,boss);//boss图案
+		for(count = 0;count < resist_quantity ;count++)
+		{
+
+			resist[resist_quantity].interval = 1;//冰冻技能	
+		
+		}
+	
+	}
 	Di_quantity++;
 	
 	}
@@ -1023,23 +1195,18 @@ void enemy_move1()
 	
 				  }
 			  
-			  
-			  
-			  
-			  
-			  
-			  
 			  }
+
 			  judge_TA1(Di[count].x,Di[count].y,&Di[count]);
 			  judge_pao(Di[count].x,Di[count].y,&Di[count]);
-			  
+			  pao_symbol = 0;//消除打中标志
 			  judge_home(Di[count].x,Di[count].y,&Di[count]); //函数判断房子生命为0时要退出游戏
 
-			  if(game1_end == 1&&game2_end ==1&&game3_end == 1&&game4_end == 1&&game5_end == 1){
-
-			   break;
-			  
-			  }
+//			  if(game1_end == 1&&game2_end ==1&&game3_end == 1&&game4_end == 1&&game5_end == 1){
+//
+//			   break;
+//			  
+//			  }
 
 		 }
 	}	
@@ -1047,12 +1214,14 @@ void enemy_move1()
 }	   
 
 
-void delay(){
+void delay()
+{
 
    uint i,j;
    i = 100;
    j = 1100;
-   for(;i > 0;i--){
+   for(;i > 0;i--)
+   {
    
    
      for(j = 1100;j > 0;j--){
@@ -1163,12 +1332,12 @@ void judge_TA1(uchar x,uchar y,Enemy*di)
 	
 				if(resist[count].interval == 0)
 				{
-				  	LED = ~LED;		
+	
 				    resist[count].interval = 1;//进入冷却期
 					di->live--;//被击中，生命减少
 				 
 					 
-					if(di->live ==0)
+					if(di->live == 0)
 					{
 					 
 					   //显示敌人个数界面
@@ -1178,7 +1347,8 @@ void judge_TA1(uchar x,uchar y,Enemy*di)
 					   di->y = 0;
 					   di->exist = 0;	 //重置结构体
 					  
-					   Di_si++;//死亡个数到达9时游戏结束
+					   Di_si++;//死亡个数到达9时游戏结束				   
+
 					   clear_part(112,17,2);
 					   clear_part(112,7,2);
 					   cash++;//死一个敌人加一个现金
@@ -1188,7 +1358,7 @@ void judge_TA1(uchar x,uchar y,Enemy*di)
 		
 					   if(Di_si == 9)	  //死亡九个游戏成功
 					   {	
-					        ET0 = 0;//  关中断
+
 					   		game_win();
 					        
 							break; //跳出循环，减少步骤
@@ -1217,9 +1387,8 @@ void judge_TA1(uchar x,uchar y,Enemy*di)
 					   {
 					   
 					        
-						    ET0 = 0;//游戏成功关闭中断
 							game_win();
-							
+							break;
 					   
 		
 					   }
@@ -1252,7 +1421,7 @@ void judge_pao(uchar x,uchar y,Enemy*di)
      for(count = 0;count < resist_quantity; count++)
 	 {
 	 
-	 	 if(resist[count].level != 2)
+	 	 if(resist[count].level != 2&&pao_symbol == 0)
 		 {
 		 	continue;
 		 
@@ -1281,7 +1450,7 @@ void judge_pao(uchar x,uchar y,Enemy*di)
 			
 			}	
 
-			 pao_symbol = 0;
+			 pao_symbol = 1;
 			 di->live = 0;//被击中，生命减少
 			 //显示敌人个数界面
 
@@ -1301,7 +1470,7 @@ void judge_pao(uchar x,uchar y,Enemy*di)
 			 if(Di_si == 9)	  //死亡九个游戏成功
 			 {	
 			   
-			    ET0 = 0;//  关中断
+
 			   	game_win();   
 				break; //跳出循环，减少步骤
 			 
@@ -1330,22 +1499,14 @@ void judge_home(uchar x,uchar y,Enemy*di)
 
 	uint count = 0;
 	//通过遍历将家的坐标与敌人目前的坐标作比较
-	for(count = 0;count < 3;count++)
+	for(count = 0;count < home_quantity;count++)
 	{
 
-		if(home[count].x == di->x && home[count].y == y)
+		if(home[count].x == di->x && (home[count].y == y||home[count].y==y + 1))
 		{
 			home_hp--;
 			clear_part(112,22,2);
-			switch(home_hp){
-
-			case 0 :write_lcd8(112,22,num0);break;
-			case 1:write_lcd8(112,22,num1);	break;
-			case 2:write_lcd8(112,22,num2);	break;
-			default:break;
-			
-			
-			}
+			display_num(112,22,home_hp);
 
 			if(home_hp == 0)
 			{
@@ -1364,22 +1525,8 @@ void judge_home(uchar x,uchar y,Enemy*di)
 			 di->exist = 0;
 			 Di_si++;//死亡个数到达10时游戏结束
 			 clear_part(112,17,2);
+			 display_num(112,17,9-Di_si);
 
-			   switch(9 - Di_si)
-			   {
-
-			   	case 0:	  write_lcd8(112,17,num0); break;
-			   	case 1:	  write_lcd8(112,17,num1); break;
-				case 2:	  write_lcd8(112,17,num2);break;
-			   	case 3:	  write_lcd8(112,17,num3);break;
-			   	case 4:	  write_lcd8(112,17,num4);break;
-			   	case 5:	  write_lcd8(112,17,num5);break;
-			   	case 6:	  write_lcd8(112,17,num6);break;
-			  	case 7:	  write_lcd8(112,17,num7);break;
-				case 8:	  write_lcd8(112,17,num8);break;
-				case 9:	  write_lcd8(112,17,num9);break;
-			    default:  break;
-				 }
 			   if(Di_si == 9)
 			   {	
 			        ET0 = 0;//游戏成功关闭中断
@@ -1480,26 +1627,29 @@ void rebuild_xj()
 
 void failed ()
 {
-
+	TR0 = 0;
+	Buzzer = 1;
   	clear_all();
 	_nop_();
 	_nop_();
 	_nop_();
 	_nop_();
+	Buzzer = 0;
     write_lcd8(48,15,f);
     write_lcd8(48,17,a);
     write_lcd8(48,19,i);
     write_lcd8(48,21,l2);
     game1_end = 1;//游戏结束
-    LED = ~ LED;
-	clear_all();
+
 	game1_end = 1;//游戏结束，返回主界面
 	game2_end = 1;
 	game3_end = 1;
 	game4_end = 1;
 	game5_end = 1;
-
-
+	init();
+	delay();
+	rebuild_information();
+	clear_all();
 }
 
 
@@ -1514,42 +1664,85 @@ void failed ()
 
 void game_win()
 {
+	TR0 = 0;
 	score++;
+	Buzzer = 1;
+	digital(score);
    	clear_all();
 	_nop_();
 	_nop_();
 	_nop_();
 	_nop_();
-    write_lcd8(48,10, y);
-    write_lcd8(48,11, o);
-    write_lcd8(48,12, u);
-    write_lcd8(48,14, w);
-    write_lcd8(48,15,i);
-    write_lcd8(48,16,n);
-	write_lcd8(64,10,c1);
-	write_lcd8(64,11,a);
-	write_lcd8(64,12,s);
-	write_lcd8(64,13,h2);
-	display_num(64,15,cash);
+	Buzzer = 0;
+    write_lcd8(32,10, y);
+    write_lcd8(32,11, o);
+    write_lcd8(32,12, u);
+    write_lcd8(32,14, w);
+    write_lcd8(32,15,i);
+    write_lcd8(32,16,n);
+
+	write_lcd8(54,6,c1);
+	write_lcd8(54,7,a);
+	write_lcd8(54,8,s);
+	write_lcd8(54,9,h2);
+	display_num(54,11,cash);
+
+	write_lcd8(54,14,s);
+	write_lcd8(54,15,c2);
+	write_lcd8(54,16,o);
+	write_lcd8(54,17,r);
+	write_lcd8(54,18,e2);
+
+	display_num(54,19,score);
+
+	write_lcd8(80,7,u);
+	write_lcd8(80,8,s);
+	write_lcd8(80,9,i);
+	write_lcd8(80,10,n);
+	write_lcd8(80,11,g);
+	write_lcd8(80,13,h2);
+	write_lcd8(80,14,a);
+	write_lcd8(80,15,o);
+	write_lcd8(80,17,t);
+	write_lcd8(80,18,o);
+
+	write_lcd8(80,20,r);
+	write_lcd8(80,21,e2);
+	write_lcd8(80,22,t);
+	write_lcd8(80,23,u);
+	write_lcd8(80,24,r);
+	write_lcd8(80,25,n);
+
+	write_lcd8(97,5,t);
+	write_lcd8(97,6,o);
+	write_lcd8(97,8,c2);
+	write_lcd8(97,9,h2);
+	write_lcd8(97,10,o);
+	write_lcd8(97,11,o);
+	write_lcd8(97,12,s);
+	write_lcd8(97,13,e2);
+	write_lcd8(97,15,l1);
+	write_lcd8(97,16,e2);
+	write_lcd8(97,17,v);
+	write_lcd8(97,18,e2);
+	write_lcd8(97,19,l2);
+
+	
 
 
-	write_lcd8(64,17,s);
-	write_lcd8(64,18,c2);
-	write_lcd8(64,19,o);
-	write_lcd8(64,20,r);
-	write_lcd8(64,21,e2);
+	end_game();
 
-	display_num(64,23,score);
+	delay();
+	rebuild_information();
+	clear_all();
+	_nop_();
+	_nop_();
+	_nop_();
 
 
-	game1_end = 1;//游戏结束，返回主界面
-	game2_end = 1;
-	game3_end = 1;
-	game4_end = 1;
-	game5_end = 1;
-	while(com != 0x08);
-	com = 0;
 }
+
+
 
 Status TA_inprove()	//判断是否已存在防御塔，存在升级为炮
 {
@@ -1590,8 +1783,7 @@ Status TA_inprove()	//判断是否已存在防御塔，存在升级为炮
 *******************************************************************************/
 void display_num(uchar x,uchar y,uchar num)
 {
-
-	switch(num){
+	switch(num/10){
 	
 	case 0:write_lcd8(x,y,num0);break;
     case 1:write_lcd8(x,y,num1);break;
@@ -1603,6 +1795,21 @@ void display_num(uchar x,uchar y,uchar num)
     case 7:write_lcd8(x,y,num7);break;
     case 8:write_lcd8(x,y,num8);break;
     case 9:write_lcd8(x,y,num9);break;		
+	
+	}
+
+	switch(num%10){
+	
+	case 0:write_lcd8(x,y+1,num0);break;
+    case 1:write_lcd8(x,y+1,num1);break;
+    case 2:write_lcd8(x,y+1,num2);break;
+    case 3:write_lcd8(x,y+1,num3);break;
+    case 4:write_lcd8(x,y+1,num4);break;
+    case 5:write_lcd8(x,y+1,num5);break;
+    case 6:write_lcd8(x,y+1,num6);break;
+    case 7:write_lcd8(x,y+1,num7);break;
+    case 8:write_lcd8(x,y+1,num8);break;
+    case 9:write_lcd8(x,y+1,num9);break;		
 	
 	}
 
@@ -1624,7 +1831,7 @@ void pass_function()
 
 	 if(game1_end == 0)
 	 {
-			LED = ~LED;
+
 			if(num % 40 == 0)
 			{ 
 			 
@@ -1634,28 +1841,79 @@ void pass_function()
 			}
 			 if(num % 80 == 0)
 			{
-			
-			 init_enemy();
+				  num = 0; 
+			    init_enemy();
+				rebuild_xj();
 			 
 			}  	   
-			if(num % 50 ==0)
-			{
-			   num = 0;  
-			   rebuild_xj();
-			  
-			    //包括真实与屏幕陷阱的建立
-			  
-			}
 
 	}
 	else if(game2_end == 0)
+	{
+			
+			if(num % 30 == 0)
+			{ 
+			 
+		    	enemy_move1(); 
+			
+
+			}
+			 if(num % 60 == 0)
+			{
+			
+			   init_enemy(); 
+			   num = 0;  
+			   rebuild_xj();
+			 
+			}  	   
+	
+	}
+	else if(game3_end == 0)
+	{
+		
+			if(num % 20 == 0)
+			{ 
+			 
+		    	enemy_move1(); 
+
+			}
+			 if(num % 40 == 0)
+			{
+			
+			 init_enemy(); 
+			 num = 0;  
+			 rebuild_xj();
+			 
+			}  	   
+	
+	}
+	else if(game4_end == 0)
+	{
+			
+			if(num % 15 == 0)
+			{ 
+			 
+		    	enemy_move1(); 
+
+			}
+			 if(num % 30 == 0)
+		     {
+			
+			 init_enemy();	 
+			 num = 0;  
+			 rebuild_xj();
+			      //包括真实与屏幕陷阱的建立
+			  
+			 }  	   
+		
+	}
+	else if(game5_end == 0)
 	{
 			
 			if(num % 20 == 0)
 			{ 
 			 
 		    	enemy_move1(); 
-			
 
 			}
 			 if(num % 40 == 0)
@@ -1664,7 +1922,7 @@ void pass_function()
 			 init_enemy();
 			 
 			}  	   
-			if(num % 50 ==0)
+			if(num % 40 ==0)
 			{
 			   num = 0;  
 			   rebuild_xj();
@@ -1674,80 +1932,65 @@ void pass_function()
 			}
 	
 	}
-	else if(game3_end == 0)
-	{
-			LED = ~LED;
-			if(num % 10 == 0)
-			{ 
-			 
-		    	enemy_move1(); 
 
-			}
-			 if(num % 40 == 0)
-			{
-			
-			 init_enemy();
-			 
-			}  	   
-			if(num % 60 ==0)
-			{
-			   num = 0;  
-			   rebuild_xj();
-			  
-			    //包括真实与屏幕陷阱的建立
-			  
-			}
+
+}
+
+
+
+
+
+void rebuild_information()
+{
+	
+	uint count = 0;
+	cursor_m.x = 0;
+	cursor_m.y = 0;
+    
+	Di_quantity = 0;//地图中敌人数量
+
+	for(count = 0;count < 10 ; count++)
+	{
+		Di[count].x = 0;
+		Di[count].y = 0;
+		Di[count].exist = 0;
+		Di[count].live = 0;
+	}
+
+	for(count = 0;count <resist_quantity;count++)
+	{
+		resist[count].x = 0;
+		resist[count].y = 0;
+		resist[count].level = 0;
+		resist[count].interval = 1;//冷却期
+		resist[count].alive = 0;//不存在
 	
 	}
-	else if(game4_end == 0)
+	resist_quantity = 0;
+	for(count = 0;count < 3;count++)
 	{
-			
-			if(num % 10 == 0)
-			{ 
-			 
-		    	enemy_move1(); 
+	   home[count].x = 0;
+	   home[count].y = 0;
 
-			}
-			 if(num % 20 == 0)
-			{
-			
-			 init_enemy();
-			 
-			}  	   
-			if(num % 25 ==0)
-			{
-			   num = 0;  
-			   rebuild_xj();
-			      //包括真实与屏幕陷阱的建立
-			  
-			}
-	
 	}
-	else if(game5_end == 0)
-	{
-			
-			if(num % 10 == 0)
-			{ 
-			 
-		    	enemy_move1(); 
+    num = 0;
+	Di_si = 0;
+	home_hp = 0;
+    pao_symbol = 0;//用于判断是否被炮打中，打中为一
 
-			}
-			 if(num % 20 == 0)
-			{
-			
-			 init_enemy();
-			 
-			}  	   
-			if(num % 25 ==0)
-			{
-			   num = 0;  
-			   rebuild_xj();
-			  
-			    //包括真实与屏幕陷阱的建立
-			  
-			}
-	
-	}
+
+}
+
+
+void end_game()
+{
+	game1_end = 1;
+	game2_end = 1;
+	game3_end = 1;
+	game4_end = 1;
+	game5_end = 1;
+
+
 
 
 }
